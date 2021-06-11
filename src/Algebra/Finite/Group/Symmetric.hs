@@ -1,37 +1,30 @@
-module Algebra.Finite.Group.Symmetric where
+-- | Permutation groups.
+module Algebra.Finite.Group.Symmetric
+  ( Permutation(..)
+  , fromList
+  , sn
+  ) where
 
-import Algebra.Finite.Group
+import Algebra.Finite.Group ( Group(..) )
 
-import Data.Maybe (fromJust)
+import qualified Data.Set as Set
+import qualified Math.Combinat.Permutations as MCP
 
-newtype Permutation a = Permutation [(a, a)]
-  deriving (Show)
+-- | Permutation of n elements.
+newtype Permutation = Permutation { getPermutation :: MCP.Permutation }
+  deriving (Eq, Ord)
 
-permSet :: Permutation a -> [a]
-permSet (Permutation p) = fst <$> p
+fromList :: [Integer] -> Permutation
+fromList is = Permutation (MCP.toPermutationUnsafe (fromInteger <$> is))
 
-applyPerm :: Eq a => Permutation a -> a -> a
-applyPerm (Permutation p) a = fromJust (lookup a p)
+instance Show Permutation where
+  show (Permutation p) = show (MCP.fromPermutation p)
 
--- | Compose two permutations as functions.
---
--- @p \`composePerms\` q@ corresponds to @applyPerm p . applyPerm q@.
-composePerms :: Eq a => Permutation a -> Permutation a -> Permutation a
-composePerms (Permutation p) (Permutation q) = Permutation
-  [ (a, c) | (a, b) <- q, let c = fromJust (lookup b p) ]
-
-selections :: [a] -> [(a, [a])]
-selections [] = []
-selections (x:xs) = (x,xs) : [ (y, x:ys) | (y, ys) <- selections xs ]
-
-allPermutations' :: [a] -> [[a]]
-allPermutations' [] = [[]]
-allPermutations' xs =
-  [ y : zs
-  | (y, ys) <- selections xs
-  , zs <- allPermutations' ys
-  ]
-
-allPermutations :: [a] -> [Permutation a]
-allPermutations as = Permutation . zip as <$> allPermutations' as
-
+sn :: Integer -> Group Permutation
+sn n = Group
+  { gSet = Set.fromList (Permutation <$> MCP.permutations (fromInteger n))
+  , gMul = \(Permutation p) (Permutation q) ->
+             Permutation (MCP.multiplyPermutation  p q)
+  , gInv = \(Permutation p) -> Permutation (MCP.inversePermutation p)
+  , gId = Permutation (MCP.identityPermutation (fromInteger n))
+  }

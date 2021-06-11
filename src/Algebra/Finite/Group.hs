@@ -10,7 +10,8 @@
 
 -- | The algebra of finite groups.
 module Algebra.Finite.Group
-  ( Group(..)
+  ( -- * Groups
+    Group(..)
   , GroupElem
   , GroupLaw(..)
   , canonical

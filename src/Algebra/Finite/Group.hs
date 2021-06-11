@@ -42,8 +42,8 @@ data Group a = Group
   }
 
 -- | Construct the multiplication table from a group.
-groupMulTable :: Group a -> [(a, a, a)]
-groupMulTable g = [ (a, b, gMul g a b) | a <- d, b <- d ]
+groupMulTable :: Group a -> [(a, [(a, a)])]
+groupMulTable g = [ (a, [ (b, gMul g a b) | b <- d ]) | a <- d ]
   where d = Set.toList (gSet g)
 
 -- | Construct the inversion table from a group.

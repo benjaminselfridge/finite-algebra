@@ -4,16 +4,22 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE TypeFamilies #-}
+
+-- | The algebra of finite groups.
 module Algebra.Finite.Group
   ( Group(..)
+  , GroupElem
   , GroupLaw(..)
-  , GroupHomomorphism(..)
   , canonical
   , groupMulTable
   , groupInvTable
   -- * Subgroups
   , generated
   -- * Homomorphisms
+  , GroupHomomorphism(..)
+  , GroupHomomorphismLaw(..)
   ) where
 
 import Algebra.Finite.Class ( Algebra(..), Morphism(..) )
@@ -29,10 +35,10 @@ import Data.Tuple (swap)
 -- operations, associativity of multiplication, left\/right inverses, and
 -- left\/right identity.
 data Group a = Group
-  { gSet :: Set a
-  , gMul :: a -> a -> a
-  , gInv :: a -> a
-  , gId  :: a
+  { gSet :: Set a       -- ^ Underlying set
+  , gMul :: a -> a -> a -- ^ Group multiplication
+  , gInv :: a -> a      -- ^ Multiplicative inverse
+  , gId  :: a           -- ^ Multiplicative identity
   }
 
 -- | Construct the multiplication table from a group.
@@ -70,17 +76,25 @@ canonical g = GroupHomomorphism { ghDomain = g
 instance Show (Group a) where
   show _ = "<group>"
 
-data GroupLaw = IdClosed
-              | InvClosed
-              | MulClosed
-              | IdLeftIdentity
-              | IdRightIdentity
-              | InvLeftInverse
-              | InvRightInverse
-              | MulAssoc
+-- | The laws that every valid group must satisfy.
+data GroupLaw = IdClosed        -- ^ @e in g@.
+              | InvClosed       -- ^ @forall a in g . inv a in g@.
+              | MulClosed       -- ^ @forall a b in g . a * b in g@.
+              | IdLeftIdentity  -- ^ @forall a in g . e * a = a@.
+              | IdRightIdentity -- ^ @forall a in g . a * e = a@.
+              | InvLeftInverse  -- ^ @forall a in g . inv a * a = e@.
+              | InvRightInverse -- ^ @forall a in g . a * inv a = e@.
+              | MulAssoc        -- ^ @forall a b c in g . (a * b) * c = a * (b * c)@.
   deriving Show
 
-instance Eq a => Algebra (Group a) a GroupLaw where
+-- | The only requirement for the elements of a group is that we can insert them
+-- into a set container.
+class Ord a => GroupElem a
+
+instance Algebra Group where
+  type AlgebraLaw Group = GroupLaw
+  type AlgebraElem Group = GroupElem
+
   algebraSet g = gSet g
 
   algebraLaws = [ (IdClosed       , \g -> Property $ gId g `elem` algebraSet g)
@@ -106,15 +120,18 @@ data GroupHomomorphism a b = GroupHomomorphism
   , ghMap :: a -> b
   }
 
+-- | The laws that every group homomorphism must satisfy.
 data GroupHomomorphismLaw = GHRespectsMultiplication
                           | GHClosed
   deriving Show
 
-instance (Eq a, Eq b) => Morphism (GroupHomomorphism a b) GroupHomomorphismLaw (Group a) (Group b) a b GroupLaw where
+instance Morphism GroupHomomorphism Group where
+  type MorphismLaw GroupHomomorphism = GroupHomomorphismLaw
+
   morphismDomain = ghDomain
   morphismCodomain = ghCodomain
   morphism = ghMap
-  morphismLaws = [ (GHClosed
+  morphismLaws = [ ( GHClosed
                    , \h -> Property $ \a -> ghMap h a `elem` gSet (ghCodomain h)
                    )
                  , ( GHRespectsMultiplication

@@ -29,6 +29,7 @@ library
                       Algebra.Finite.Group.Symmetric
                       Algebra.Finite.Group.Zn
                       Algebra.Finite.Property
+                      Algebra.Finite.Set
 
     -- Modules included in this library but not exported.
     -- other-modules:

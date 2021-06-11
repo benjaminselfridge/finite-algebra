@@ -1,3 +1,4 @@
+-- | Miscellaneous examples of groups.
 module Algebra.Finite.Group.Misc where
 
 import Algebra.Finite.Group
@@ -7,6 +8,7 @@ import qualified Data.Set as Set
 data ABC = A | B | C
   deriving (Eq, Show, Ord)
 
+-- | The group with three elements, isomorphic to @Z/3Z@.
 abc :: Group ABC
 abc = Group
   { gSet = Set.fromList [A,B,C]

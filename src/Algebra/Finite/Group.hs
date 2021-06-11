@@ -91,6 +91,8 @@ data GroupLaw = IdClosed        -- ^ @e in g@.
 -- into a set container.
 class Ord a => GroupElem a
 
+instance GroupElem Integer
+
 instance Algebra Group where
   type AlgebraLaw Group = GroupLaw
   type AlgebraElem Group = GroupElem

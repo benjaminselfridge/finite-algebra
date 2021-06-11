@@ -16,6 +16,7 @@
 -- properties over algebraic operations (that is, operations that take 0 or more
 -- inputs from a fixed, finite domain).
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE AllowAmbiguousTypes #-}
 module Algebra.Finite.Property
   ( -- * Checkable
     Checkable(..)
@@ -50,25 +51,9 @@ checkPassed PropHolds = True
 --
 -- For a given @a@, a type @p@ satisfying @Checkable p a@ will have the form
 -- @Bool@, @a -> Bool@, @a -> a -> Bool@, etc.
---
--- >>> dom = [0..3::Integer]
--- >>> check True dom
--- PropHolds
--- >>> a # b = (a + b) `mod` (4::Integer)
--- >>> neg a = negate a `mod` (4 :: Integer)
--- >>> checkProperty dom (unaryClosed dom neg)
--- PropHolds
--- >>> checkProperty dom (unaryClosed dom negate)
--- PropFailed [1]
--- >>> checkProperty dom (binaryClosed dom (#))
--- PropHolds
--- >>> checkProperty dom (binaryClosed dom (+))
--- PropFailed [1,3]
--- >>> checkProperty dom (binaryAssoc (#))
--- PropHolds
--- >>> checkProperty dom (binaryAssoc (+))
--- PropHolds
 class Checkable p a where
+
+  -- | Check that a property @p@ holds for all @a@ in some set.
   check :: p -> [a] -> PropCheckResult a
 
 instance Checkable Bool a where

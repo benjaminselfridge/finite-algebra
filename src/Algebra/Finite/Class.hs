@@ -8,6 +8,7 @@
 module Algebra.Finite.Class
   ( Algebra(..)
   , checkAlgebra
+  , isSubAlgebraOf
   , Morphism(..)
   , checkMorphism
   , morphismTable
@@ -57,6 +58,12 @@ class Algebra alg where
 -- are the inputs to the law that constitute a counterexample.
 checkAlgebra :: (Algebra alg, AlgebraElem alg a) => alg a -> Maybe (AlgebraLaw alg, [a])
 checkAlgebra alg = checkLaws (algebraSet alg) (second ($ alg) <$> algebraLaws)
+
+-- | Check that one algebra is entirely contained within another. This does
+-- *not* check that either algebra's laws are satisfied; for that, use
+-- 'checkAlgebra'.
+isSubAlgebraOf :: (Algebra alg, AlgebraElem alg a, Ord a) => alg a -> alg a -> Bool
+isSubAlgebraOf g h = algebraSet g `Set.isSubsetOf` algebraSet h
 
 -- | A morphism of algebras is a mapping from one algebra to another. The laws
 -- for a valid morphism will vary depending on what the algebra is. Typically,

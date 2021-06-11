@@ -8,6 +8,8 @@ import qualified Data.Set as Set
 data ABC = A | B | C
   deriving (Eq, Show, Ord)
 
+instance GroupElem ABC
+
 -- | The group with three elements, isomorphic to @Z/3Z@.
 abc :: Group ABC
 abc = Group

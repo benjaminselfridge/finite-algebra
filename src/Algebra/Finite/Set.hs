@@ -3,6 +3,10 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 module Algebra.Finite.Set
   ( Set(..)
+  , fromList
+  , toList
+  , delete
+  , insert
   , SetElem
   , SetLaw
   -- * Homomorphisms
@@ -14,12 +18,30 @@ import Algebra.Finite.Class
 import Algebra.Finite.Property
 
 import qualified Data.Set as Set
+import Data.List (intercalate)
 
 -- | A 'Set' is simply a collection of elements with no associated operations.
 newtype Set a = Set { unSet :: Set.Set a }
+  deriving (Eq, Ord)
 
-instance Show (Set a) where
-  show _ = "<set>"
+instance Foldable Set where
+  foldMap f (Set s) = foldMap f s
+  foldr f z (Set s) = foldr f z s
+
+fromList :: Ord a => [a] -> Set a
+fromList as = Set (Set.fromList as)
+
+toList :: Set a -> [a]
+toList (Set as) = Set.toList as
+
+delete :: Ord a => a -> Set a -> Set a
+delete a (Set s) = Set (Set.delete a s)
+
+insert :: Ord a => a -> Set a -> Set a
+insert a (Set s) = Set (Set.insert a s)
+
+instance Show a => Show (Set a) where
+  show (Set s) = "{" ++ intercalate "," (show <$> Set.toList s) ++ "}"
 
 -- | The only requirement for the elements of a set is that we can insert them
 -- into a set container.

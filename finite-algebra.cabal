@@ -37,9 +37,10 @@ library
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:
     build-depends:    base ^>=4.14.1.0,
+                      boxes,
                       combinat,
                       containers,
-                      parameterized-utils
+                      parameterized-utils,
     hs-source-dirs:   src
     default-language: Haskell2010
     ghc-options:      -Wall

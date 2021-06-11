@@ -4,14 +4,15 @@ module Algebra.Finite.Group.Zn
   ) where
 
 import Algebra.Finite.Group
+import Algebra.Finite.Set
 
-import qualified Data.Set as Set
+import Prelude hiding (id)
 
 -- | The additive group of integers mod @n@.
 znAdditive :: Integer -> Group Integer
 znAdditive n = Group
-  { gSet = Set.fromList [0..(n-1)]
-  , gMul = \a b -> (a + b) `mod` n
-  , gInv = \a -> negate a `mod` n
-  , gId  = 0
+  { set = fromList [0..(n-1)]
+  , mul = \a b -> (a + b) `mod` n
+  , inv = \a -> negate a `mod` n
+  , e   = 0
   }

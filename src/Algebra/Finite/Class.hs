@@ -1,10 +1,13 @@
+{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FunctionalDependencies #-}
-
--- | Type classes for finite algebraic structures and mappings between them.
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE PolyKinds #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications #-}
+
+-- | Type classes for finite algebraic structures and mappings between them.
 module Algebra.Finite.Class
   ( Algebra(..)
   , checkAlgebra
@@ -12,6 +15,14 @@ module Algebra.Finite.Class
   , Morphism(..)
   , checkMorphism
   , morphismTable
+  -- * Type classes for algebras
+  , SemigroupLike(..)
+  , semigroupLaws
+  , ppMulTable
+  , MonoidLike(..)
+  , monoidLaws
+  , GroupLike(..)
+  , groupLaws
   ) where
 
 import Algebra.Finite.Property
@@ -24,6 +35,8 @@ import Control.Arrow (second)
 import Data.Kind
 
 import Prelude hiding (Functor(..))
+import Data.Proxy (Proxy(Proxy))
+import qualified Text.PrettyPrint.Boxes as B
 
 checkLaws :: Set a -> [(law, Property a)] -> Maybe (law, [a])
 checkLaws d laws =
@@ -96,3 +109,92 @@ morphismTable :: (AlgebraElem alg a, AlgebraElem alg b, Morphism m alg) => m a b
 morphismTable m = [ (a, morphism m a)
                   | a <- Set.toList (algebraSet (morphismDomain m))
                   ]
+
+-- | Class for semigroups, or algebras with an associative binary operation.
+class Algebra alg => SemigroupLike alg where
+  -- | Semigroup binary operation.
+  sgMul :: alg a -> a -> a -> a
+
+  -- | Associativity of the operation.
+  sgMulAssoc :: proxy alg -> AlgebraLaw alg
+
+  -- | Closure of the operation.
+  sgMulClosed :: proxy alg -> AlgebraLaw alg
+
+-- | Semigroup laws, just associativity of multiplication.
+semigroupLaws :: forall alg a . (AlgebraElem alg a, Eq a, SemigroupLike alg)
+              => [( AlgebraLaw alg, alg a -> Property a)]
+semigroupLaws = [ ( sgMulClosed (Proxy @alg)
+                  , \alg -> Property $ \a b -> sgMul alg a b `elem` algebraSet alg)
+                , ( sgMulAssoc (Proxy @alg)
+                  , \alg -> Property $ \a b c -> sgMul alg (sgMul alg a b) c == sgMul alg a (sgMul alg b c))
+                ]
+
+ppMulTable' :: (SemigroupLike alg, Show a, AlgebraElem alg a) => alg a -> B.Box
+ppMulTable' g = B.punctuateH B.center1 vbar allCols
+  where as = Set.toList (algebraSet g)
+
+        leftmostCol = B.punctuateV B.center1 hbar $
+                      B.char '*' : [ B.text (show a) | a <- as ]
+
+        mkCol b = B.punctuateV B.center1 hbar $
+                  B.text (show b) : [ B.text (show (sgMul g a b)) | a <- as ]
+
+        allCols = leftmostCol : [ mkCol b | b <- as ]
+
+        vbar = B.vsep 0 B.center1 ([ B.char '|' B.// B.char '+' | _ <- as ] ++ [B.char '|'])
+        hbar = B.hcat B.center1 $ replicate (maximum [length (show a) | a <- as] ) (B.char '-')
+
+-- | Pretty-print a semigroup's multiplication table.
+ppMulTable :: (SemigroupLike alg, Show a, AlgebraElem alg a) => alg a -> String
+ppMulTable g = B.render (ppMulTable' g)
+
+class SemigroupLike alg => MonoidLike alg where
+  -- | Monoidal identity element.
+  mId :: alg a -> a
+
+  -- | Identity closure law.
+  mIdClosed :: proxy alg -> AlgebraLaw alg
+
+  -- | Left identity law.
+  mLeftIdentity :: proxy alg -> AlgebraLaw alg
+
+  -- | Right identity law.
+  mRightIdentity :: proxy alg -> AlgebraLaw alg
+
+-- | Monoid laws
+monoidLaws :: forall alg a . (AlgebraElem alg a, Eq a, MonoidLike alg)
+           => [( AlgebraLaw alg, alg a -> Property a)]
+monoidLaws = semigroupLaws ++
+             [ ( mIdClosed (Proxy @alg)
+               , \alg -> Property $ mId alg `elem` algebraSet alg)
+             , ( mLeftIdentity (Proxy @alg)
+               , \alg -> Property $ \a -> sgMul alg a (mId alg) == a)
+             , ( mRightIdentity (Proxy @alg)
+               , \alg -> Property $ \a -> sgMul alg (mId alg) a == a)
+             ]
+
+class MonoidLike alg => GroupLike alg where
+  -- | Group inverse unary operation.
+  gInv :: alg a -> a -> a
+
+  -- | Inverse closure law.
+  gInvClosed :: proxy alg -> AlgebraLaw alg
+
+  -- | Left inverse law.
+  gInvLeftInverse :: proxy alg -> AlgebraLaw alg
+
+  -- | Right inverse law.
+  gInvRightInverse :: proxy alg -> AlgebraLaw alg
+
+-- | Group laws
+groupLaws :: forall alg a . (AlgebraElem alg a, Eq a, GroupLike alg)
+          => [(AlgebraLaw alg, alg a -> Property a)]
+groupLaws = monoidLaws ++
+            [ ( gInvClosed (Proxy @alg)
+              , \g -> Property $ \a -> gInv g a `elem` algebraSet g )
+            , ( gInvLeftInverse (Proxy @alg)
+              , \g -> Property $ \a -> sgMul g (gInv g a) a == mId g )
+            , ( gInvRightInverse (Proxy @alg)
+              , \g -> Property $ \a -> sgMul g a (gInv g a) == mId g )
+            ]

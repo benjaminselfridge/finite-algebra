@@ -2,8 +2,7 @@
 module Algebra.Finite.Group.Misc where
 
 import Algebra.Finite.Group
-
-import qualified Data.Set as Set
+import Algebra.Finite.Set
 
 data ABC = A | B | C
   deriving (Eq, Show, Ord)
@@ -11,10 +10,10 @@ data ABC = A | B | C
 -- | The group with three elements, isomorphic to @Z/3Z@.
 abc :: Group ABC
 abc = Group
-  { gSet = Set.fromList [A,B,C]
-  , gMul = (#)
-  , gInv = inv
-  , gId = A
+  { set = fromList [A,B,C]
+  , mul = (#)
+  , inv = inv'
+  , e = A
   }
   where A # x = x
         x # A = x
@@ -23,9 +22,9 @@ abc = Group
         C # B = A
         C # C = B
 
-        inv A = A
-        inv B = C
-        inv C = B
+        inv' A = A
+        inv' B = C
+        inv' C = B
 
 -- 0: id
 -- 1: (1 2)
@@ -35,10 +34,10 @@ abc = Group
 -- 5: (1 3 2)
 s3 :: Group Integer
 s3 = Group
-  { gSet = Set.fromList [0..5]
-  , gMul = (#)
-  , gInv = inv
-  , gId = 0
+  { set = fromList [0..5]
+  , mul = (#)
+  , inv = inv'
+  , e = 0
   }
   where 0 # a = a
         a # 0 = a
@@ -69,10 +68,10 @@ s3 = Group
         5 # 5 = 4
         a # b = error $ "bad args to #: " ++ show a ++ " # " ++ show b
 
-        inv 0 = 0
-        inv 1 = 1
-        inv 2 = 2
-        inv 3 = 3
-        inv 4 = 5
-        inv 5 = 4
-        inv a = error $ "bad arg to inv: inv " ++ show a
+        inv' 0 = 0
+        inv' 1 = 1
+        inv' 2 = 2
+        inv' 3 = 3
+        inv' 4 = 5
+        inv' 5 = 4
+        inv' a = error $ "bad arg to inv': inv' " ++ show a

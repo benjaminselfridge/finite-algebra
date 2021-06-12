@@ -7,6 +7,7 @@ module Algebra.Finite.Set
   , toList
   , delete
   , insert
+  , union
   , SetElem
   , SetLaw
   -- * Homomorphisms
@@ -39,6 +40,9 @@ delete a (Set s) = Set (Set.delete a s)
 
 insert :: Ord a => a -> Set a -> Set a
 insert a (Set s) = Set (Set.insert a s)
+
+union :: Ord a => Set a -> Set a -> Set a
+union (Set a) (Set b) = Set (Set.union a b)
 
 instance Show a => Show (Set a) where
   show (Set s) = "{" ++ intercalate "," (show <$> Set.toList s) ++ "}"

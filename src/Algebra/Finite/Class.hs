@@ -11,7 +11,6 @@
 module Algebra.Finite.Class
   ( Algebra(..)
   , checkAlgebra
-  , isSubAlgebraOf
   , Morphism(..)
   , checkMorphism
   , morphismTable
@@ -64,19 +63,11 @@ class Algebra alg where
   -- | The laws that must hold for the algebra.
   algebraLaws :: AlgebraElem alg a => [(AlgebraLaw alg, alg a -> Property a)]
 
-  -- | The codomain of a morph
-
 -- | Check that all the laws hold for a given algebra. If a law does not hold,
 -- return @Just (law, inputs)@, where @law@ is the law that fails, and @inputs@
 -- are the inputs to the law that constitute a counterexample.
 checkAlgebra :: (Algebra alg, AlgebraElem alg a) => alg a -> Maybe (AlgebraLaw alg, [a])
 checkAlgebra alg = checkLaws (algebraSet alg) (second ($ alg) <$> algebraLaws)
-
--- | Check that one algebra is entirely contained within another. This does
--- *not* check that either algebra's laws are satisfied; for that, use
--- 'checkAlgebra'.
-isSubAlgebraOf :: (Algebra alg, AlgebraElem alg a, Ord a) => alg a -> alg a -> Bool
-isSubAlgebraOf g h = algebraSet g `Set.isSubsetOf` algebraSet h
 
 -- | A morphism of algebras is a mapping from one algebra to another. The laws
 -- for a valid morphism will vary depending on what the algebra is. Typically,
@@ -95,7 +86,8 @@ class Algebra alg => Morphism m alg | m -> alg, alg -> m where
   -- | The codomain of the morphism.
   morphismCodomain :: (AlgebraElem alg a, AlgebraElem alg b) => m a b -> alg b
 
-  -- | The morphism laws.
+  -- | The morphism laws. This should include a closure law representing the
+  -- fact that @forall a in alg . phi(a) in alg'@.
   morphismLaws     :: (AlgebraElem alg a, AlgebraElem alg b) => [(MorphismLaw m, m a b -> Property a)]
 
 -- | Check that all the laws hold for a given morphism. If a law does not hold,
@@ -162,7 +154,8 @@ class SemigroupLike alg => MonoidLike alg where
   -- | Right identity law.
   mRightIdentity :: proxy alg -> AlgebraLaw alg
 
--- | Monoid laws
+-- | Monoid laws. This includes all the semigroup laws, as well as 'mIdClosed',
+-- 'mLeftIdentity', and 'mRightIdentity'.
 monoidLaws :: forall alg a . (AlgebraElem alg a, Eq a, MonoidLike alg)
            => [( AlgebraLaw alg, alg a -> Property a)]
 monoidLaws = semigroupLaws ++
@@ -187,7 +180,8 @@ class MonoidLike alg => GroupLike alg where
   -- | Right inverse law.
   gInvRightInverse :: proxy alg -> AlgebraLaw alg
 
--- | Group laws
+-- | Group laws. This includes all the semigroup and monoid laws, as well as
+-- 'gInvClosed', 'gInvLeftInverse', and 'gInvRightInverse'.
 groupLaws :: forall alg a . (AlgebraElem alg a, Eq a, GroupLike alg)
           => [(AlgebraLaw alg, alg a -> Property a)]
 groupLaws = monoidLaws ++

@@ -21,6 +21,9 @@ module Algebra.Finite.Group
   , groupInvTable
   -- * Subgroups
   , generated
+  , conjugateSet
+  , checkNormalSubgroupOf
+  , isNormalSubgroupOf
   -- * Cosets and quotient groups
   , leftCoset
   , rightCoset
@@ -43,7 +46,7 @@ module Algebra.Finite.Group
   ) where
 
 import Algebra.Finite.Class
-import Algebra.Finite.Property ( Property(Property) )
+import Algebra.Finite.Property
 import Algebra.Finite.Set
 
 import Data.Bifunctor (bimap)
@@ -166,8 +169,29 @@ generated g aSet = g { set = gen (insert (e g) aSet) }
               | otherwise = gen s'
           where s' = multiplySets g s s
 
+-- | Given a set @S@ and a group element @a@, compute the set @{ a * x * a^-1 |
+-- x <- S }@.
+conjugateSet :: Ord a => Group a -> a -> Set a -> Set a
+conjugateSet g a s = fromList [ mul g a (mul g x (inv g a)) | x <- toList s ]
+
+-- | Check that the first group is a normal subgroup of the second, returning a
+-- counterexample @a@ satisfying @a * h * a^-1 /= h@ if one exists.
+checkNormalSubgroupOf :: Ord a => Group a -> Group a -> Maybe a
+checkNormalSubgroupOf h g = case checkProperty p (toList (set g)) of
+  PropHolds      -> Nothing
+  PropFailed [a] -> Just a
+  _ -> error "PANIC: bug in checkNormalSubgroupOf"
+  where p = Property $ \a -> conjugateSet g a (set h) == set h
+
+-- | Ensure that a subgroup is normal.
+isNormalSubgroupOf :: Ord a => Group a -> Group a -> Bool
+isNormalSubgroupOf h g = isNothing (checkNormalSubgroupOf h g)
+
 -- | A group homomorphism is just a map on the underlying sets that respects
 -- multiplication.
+
+isNothing :: Maybe a -> Bool
+isNothing = error "not implemented"
 data GroupHomomorphism a b = GroupHomomorphism
   { ghDomain   :: Group a
   , ghCodomain :: Group b

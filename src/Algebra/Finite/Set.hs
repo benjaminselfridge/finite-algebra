@@ -1,6 +1,8 @@
 -- | The algebra of finite sets.
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE UndecidableInstances #-}
 module Algebra.Finite.Set
   ( Set(..)
   , fromList
@@ -20,6 +22,7 @@ import Algebra.Finite.Property
 
 import qualified Data.Set as Set
 import Data.List (intercalate)
+import GHC.Exts (IsList(..))
 
 -- | A 'Set' is simply a collection of elements with no associated operations.
 newtype Set a = Set { unSet :: Set.Set a }
@@ -29,11 +32,11 @@ instance Foldable Set where
   foldMap f (Set s) = foldMap f s
   foldr f z (Set s) = foldr f z s
 
-fromList :: Ord a => [a] -> Set a
-fromList as = Set (Set.fromList as)
+instance Ord a => IsList (Set a) where
+  type Item (Set a) = a
 
-toList :: Set a -> [a]
-toList (Set as) = Set.toList as
+  fromList = Set . Set.fromList
+  toList (Set s) = toList s
 
 delete :: Ord a => a -> Set a -> Set a
 delete a (Set s) = Set (Set.delete a s)
@@ -50,6 +53,7 @@ instance Show a => Show (Set a) where
 -- | The only requirement for the elements of a set is that we can insert them
 -- into a set container.
 class Ord a => SetElem a
+instance Ord a => SetElem a
 
 -- | There are no laws that must be satisfied; any collection of elements is a
 -- valid set.

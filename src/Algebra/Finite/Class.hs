@@ -105,11 +105,9 @@ morphismTable m = [ (a, morphism m a)
 -- | Class for semigroups, or algebras with an associative binary operation.
 class Algebra alg => SemigroupLike alg where
   -- | Semigroup binary operation.
-  sgMul :: alg a -> a -> a -> a
-
+  sgMul       :: alg a -> a -> a -> a
   -- | Associativity of the operation.
-  sgMulAssoc :: proxy alg -> AlgebraLaw alg
-
+  sgMulAssoc  :: proxy alg -> AlgebraLaw alg
   -- | Closure of the operation.
   sgMulClosed :: proxy alg -> AlgebraLaw alg
 
@@ -127,7 +125,7 @@ ppMulTable' g = B.punctuateH B.center1 vbar allCols
   where as = Set.toList (algebraSet g)
 
         leftmostCol = B.punctuateV B.center1 hbar $
-                      B.char '*' : [ B.text (show a) | a <- as ]
+                      B.char ' ' : [ B.text (show a) | a <- as ]
 
         mkCol b = B.punctuateV B.center1 hbar $
                   B.text (show b) : [ B.text (show (sgMul g a b)) | a <- as ]
@@ -143,14 +141,11 @@ ppMulTable g = B.render (ppMulTable' g)
 
 class SemigroupLike alg => MonoidLike alg where
   -- | Monoidal identity element.
-  mId :: alg a -> a
-
+  mId            :: alg a -> a
   -- | Identity closure law.
-  mIdClosed :: proxy alg -> AlgebraLaw alg
-
+  mIdClosed      :: proxy alg -> AlgebraLaw alg
   -- | Left identity law.
-  mLeftIdentity :: proxy alg -> AlgebraLaw alg
-
+  mLeftIdentity  :: proxy alg -> AlgebraLaw alg
   -- | Right identity law.
   mRightIdentity :: proxy alg -> AlgebraLaw alg
 
@@ -169,14 +164,11 @@ monoidLaws = semigroupLaws ++
 
 class MonoidLike alg => GroupLike alg where
   -- | Group inverse unary operation.
-  gInv :: alg a -> a -> a
-
+  gInv             :: alg a -> a -> a
   -- | Inverse closure law.
-  gInvClosed :: proxy alg -> AlgebraLaw alg
-
+  gInvClosed       :: proxy alg -> AlgebraLaw alg
   -- | Left inverse law.
-  gInvLeftInverse :: proxy alg -> AlgebraLaw alg
-
+  gInvLeftInverse  :: proxy alg -> AlgebraLaw alg
   -- | Right inverse law.
   gInvRightInverse :: proxy alg -> AlgebraLaw alg
 

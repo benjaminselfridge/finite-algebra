@@ -24,7 +24,6 @@ extra-source-files: CHANGELOG.md
 library
     exposed-modules:  Algebra.Finite.Class
                       Algebra.Finite.Group
-                      Algebra.Finite.Group.Dihedral
                       Algebra.Finite.Group.Misc
                       Algebra.Finite.Group.Symmetric
                       Algebra.Finite.Group.Zn

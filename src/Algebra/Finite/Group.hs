@@ -1,9 +1,7 @@
 {-# LANGUAGE RankNTypes #-}
-{-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE UndecidableInstances #-}
@@ -50,7 +48,7 @@ import Algebra.Finite.Property
 import Algebra.Finite.Set
 
 import Data.Bifunctor (bimap)
-import Data.Maybe (fromJust)
+import Data.Maybe (fromJust, isNothing)
 import Data.Tuple (swap)
 import Data.Foldable (find)
 
@@ -190,8 +188,6 @@ isNormalSubgroupOf h g = isNothing (checkNormalSubgroupOf h g)
 -- | A group homomorphism is just a map on the underlying sets that respects
 -- multiplication.
 
-isNothing :: Maybe a -> Bool
-isNothing = error "not implemented"
 data GroupHomomorphism a b = GroupHomomorphism
   { ghDomain   :: Group a
   , ghCodomain :: Group b
